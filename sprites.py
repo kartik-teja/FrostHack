@@ -36,7 +36,28 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
-    
+        self.tasks = [
+            "Catch 5 Pokemons",
+            "Win a Battle",
+            "Visit the PokeCenter",
+        ]
+        self.current_task_index = 0
+        self.display_task()
+
+    def display_task(self):
+        current_task = self.tasks[self.current_task_index]
+        font = pygame.font.Font(None, 36)
+
+        text = font.render(current_task, True, (255, 255, 255))
+        text_rect = text.get_rect(center=(self.rect.centerx, self.rect.y - 20))
+        self.game.screen.blit(text, text_rect)
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]: 
+            self.current_task_index += 1
+        if self.current_task_index == len(self.tasks):
+            self.current_task_index = 0
+
     def update(self):
         self.movement()
         self.animate()
@@ -48,6 +69,9 @@ class Player(pygame.sprite.Sprite):
 
         self.x_move = 0
         self.y_move = 0
+
+        
+        self.display_task()
 
     def movement(self):
         keys = pygame.key.get_pressed()
@@ -63,7 +87,25 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_DOWN]:
             self.y_move += PLAYER_SPEED
             self.facing = 'down'
-
+    
+    def collide_enemy(self,direction):
+        hits = pygame.sprite.spritecollide(self,self.game.enemy_sprites,False)
+        if direction == 'x':
+            hits = pygame.sprite.spritecollide(self,self.game.blocks, False)
+            if hits:
+                if self.x_move > 0:
+                    self.rect.x = hits[0].rect.left - self.rect.width
+                if self.x_move < 0:
+                    self.rect.x = hits[0].rect.right
+        
+        if direction == 'y':
+            hits = pygame.sprite.spritecollide(self,self.game.blocks, False)
+            if hits:
+                if self.y_move > 0:
+                    self.rect.y = hits[0].rect.top - self.rect.height
+                if self.y_move < 0:
+                    self.rect.y = hits[0].rect.bottom
+        
     def collide_blocks(self, direction):
         if direction == 'x':
             hits = pygame.sprite.spritecollide(self,self.game.blocks, False)
